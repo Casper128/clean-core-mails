@@ -53,7 +53,7 @@ input:focus, textarea:focus { border-color: #5595c6; box-shadow: 0 0 0 3px rgba(
 textarea { resize: vertical; line-height: 1.45; }
 .derived-value { margin-top: 20px; padding: 12px 14px; border: 1px dashed #b8c9d6; border-radius: 9px; background: #f7fafc; }
 .derived-value span { display: block; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 5px; }
-.derived-value code { color: var(--navy); font-size: 12px; overflow-wrap: anywhere; }
+.derived-value code { display: block; color: var(--navy); font-size: 12px; overflow-wrap: anywhere; }
 .validation-box { padding: 15px; border: 1px solid #b9ddd5; border-radius: 10px; background: #f3fbf9; }
 .box-title { margin: 0 0 11px; font-size: 12px; font-weight: 800; }
 .checkbox-row { display: grid; grid-template-columns: 18px 1fr; gap: 9px; align-items: start; margin-top: 9px; color: #335367; font-size: 12px; line-height: 1.45; cursor: pointer; }
