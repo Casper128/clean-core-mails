@@ -1,0 +1,4 @@
+html { min-width: 320px; background: #f4f7f9; }
+body { margin: 0; min-width: 320px; min-height: 100vh; font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+button, input, textarea { font-family: inherit; }
+::selection { background: #cce9e3; color: #102a43; }
