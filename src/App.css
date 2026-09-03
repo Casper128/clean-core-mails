@@ -81,10 +81,12 @@ textarea { resize: vertical; line-height: 1.45; }
 .preview-section + .preview-section { border-top: 1px solid var(--line); }
 .preview-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: #7b8d9c; font-size: 9px; font-weight: 850; letter-spacing: .12em; }
 .preview-label button { border: 0; padding: 3px 0; color: var(--blue); background: transparent; font-size: 10px; font-weight: 800; }
+.preview-label button:disabled { cursor: not-allowed; color: #9daebb; }
 .subject-editor { border: 0; padding: 4px 0; border-radius: 0; background: white; font-size: 13px; font-weight: 750; line-height: 1.45; }
 .subject-editor:focus { border: 0; box-shadow: inset 0 -2px 0 rgba(23,105,170,.35); }
-.body-editor { min-height: calc(100vh - 282px); max-height: calc(100vh - 282px); border: 0; padding: 0 5px 0 0; border-radius: 0; resize: vertical; background: white; color: #2c4355; font: 11.5px/1.58 "Segoe UI", sans-serif; }
+.body-editor { width: 100%; min-height: calc(100vh - 282px); max-height: calc(100vh - 282px); overflow-y: auto; border: 0; padding: 0 5px 0 0; border-radius: 0; background: white; color: #2c4355; font: 11.5px/1.58 "Segoe UI", sans-serif; outline: none; overflow-wrap: anywhere; }
 .body-editor:focus { border: 0; box-shadow: none; }
+.body-editor a { color: var(--blue); text-decoration: underline; font-weight: 700; }
 .preview-warning { margin: 14px 3px 0; color: var(--muted); font-size: 11px; }
 
 @media (max-width: 1180px) {

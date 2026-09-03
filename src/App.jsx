@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import './App.css';
 import AppHeader from './components/AppHeader';
 import MailFormPanel from './components/MailFormPanel';
@@ -7,22 +7,38 @@ import MailPreviewPanel from './components/MailPreviewPanel';
 import { initialState, mailTypes } from './data/mailConfig';
 import { generateMail } from './templates/mailTemplates';
 import { buildDocumentStructures, cleanItems, hasTransportType } from './utils/mailUtils';
+
+const escapeHtml = (value) =>
+    String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+
+const plainTextToHtml = (text) => escapeHtml(text).replaceAll('\n', '<br>');
+
 function App() {
     const [mailType, setMailType] = useState('integration');
     const [form, setForm] = useState(() => {
-        try {
-            const stored = localStorage.getItem('clean-core-mail-form');
-            return stored ? { ...initialState, ...JSON.parse(stored) } : initialState;
-        }
-        catch {
-            return initialState;
-        }
+        localStorage.removeItem('clean-core-mail-form');
+        return initialState;
     });
     const [copied, setCopied] = useState(null);
     const [overrides, setOverrides] = useState({});
-    useEffect(() => { localStorage.setItem('clean-core-mail-form', JSON.stringify(form)); }, [form]);
     const selectedMail = mailTypes.find((item) => item.id === mailType);
     const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+    const selectMailType = (nextMailType) => {
+        if (nextMailType === mailType) {
+            return;
+        }
+
+        setMailType(nextMailType);
+        setForm(initialState);
+        setOverrides({});
+        setCopied(null);
+        localStorage.removeItem('clean-core-mail-form');
+    };
     const documentStructures = useMemo(() => buildDocumentStructures(form), [form]);
     const transactions = useMemo(() => cleanItems(form.transactions), [form.transactions]);
     const generated = useMemo(() => generateMail(mailType, { form, transactions }), [form, mailType, transactions]);
@@ -64,15 +80,45 @@ function App() {
         ];
     }, [effectiveMail.body, effectiveMail.subject, form, mailType]);
     const ready = checks.every((check) => check.ok);
-    const copy = async (kind) => {
-        const text = kind === 'subject' ? effectiveMail.subject : kind === 'body' ? effectiveMail.body : `ASUNTO:\n${effectiveMail.subject}\n\nCUERPO:\n${effectiveMail.body}`;
+    const writeClipboard = async (text, html) => {
+        if (html && window.ClipboardItem && navigator.clipboard.write) {
+            await navigator.clipboard.write([
+                new ClipboardItem({
+                    'text/plain': new Blob([text], { type: 'text/plain' }),
+                    'text/html': new Blob([html], { type: 'text/html' }),
+                }),
+            ]);
+            return;
+        }
+
         await navigator.clipboard.writeText(text);
+    };
+    const copy = async (kind) => {
+        if (!ready) {
+            return;
+        }
+
+        const text = kind === 'subject' ? effectiveMail.subject : kind === 'body' ? effectiveMail.body : `ASUNTO:\n${effectiveMail.subject}\n\nCUERPO:\n${effectiveMail.body}`;
+        const html = kind === 'subject'
+            ? null
+            : kind === 'body'
+                ? (effectiveMail.bodyHtml ?? plainTextToHtml(effectiveMail.body))
+                : `<strong>ASUNTO:</strong><br>${escapeHtml(effectiveMail.subject)}<br><br><strong>CUERPO:</strong><br>${effectiveMail.bodyHtml ?? plainTextToHtml(effectiveMail.body)}`;
+
+        await writeClipboard(text, html);
         setCopied(kind);
         window.setTimeout(() => setCopied(null), 1800);
     };
     const reset = () => { setForm(initialState); setOverrides({}); localStorage.removeItem('clean-core-mail-form'); };
     const editMail = (key, value) => {
-        setOverrides((current) => ({ ...current, [mailType]: { ...(current[mailType] ?? generated), [key]: value } }));
+        setOverrides((current) => {
+            const nextMail = { ...(current[mailType] ?? generated), [key]: value };
+            if (key === 'body') {
+                delete nextMail.bodyHtml;
+            }
+
+            return { ...current, [mailType]: nextMail };
+        });
     };
     const restoreTemplate = () => setOverrides((current) => {
         const next = { ...current };
@@ -83,7 +129,7 @@ function App() {
     <AppHeader />
 
     <div className="workspace">
-      <MailNav mailTypes={mailTypes} selectedMailType={mailType} onSelect={setMailType} onReset={reset} />
+      <MailNav mailTypes={mailTypes} selectedMailType={mailType} onSelect={selectMailType} onReset={reset} />
       <MailFormPanel mailType={mailType} selectedMail={selectedMail} form={form} update={update} ready={ready} documentStructures={documentStructures} checks={checks} />
       <MailPreviewPanel copied={copied} effectiveMail={effectiveMail} mailType={mailType} onCopy={copy} onEditMail={editMail} onRestoreTemplate={restoreTemplate} ready={ready} hasOverride={Boolean(overrides[mailType])} />
     </div>

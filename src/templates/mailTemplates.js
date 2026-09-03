@@ -1,6 +1,15 @@
 import { sheetUrl } from '../data/mailConfig';
 import { buildDocumentStructures, displaySubmodule, formatDate, valueOr } from '../utils/mailUtils';
 
+const sheetLinkText = 'Desarrollos Z Descripciones SISS Funcionales';
+const escapeHtml = (value) =>
+  String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+
 const mailTemplateMap = {
   integration: ({ form }) => {
     const ricef = valueOr(form.ricef, 'RICEF');
@@ -74,6 +83,16 @@ Saludos,`,
     const submodule = displaySubmodule(form.submodule);
     const submoduleFilter = submodule === 'N/A' ? '' : `     Submodulo = ${submodule}
 `;
+    const blockDate = formatDate(form.blockDate);
+    const responsible = valueOr(form.responsible, 'RESPONSABLE-MENCIONADO');
+    const htmlRicef = escapeHtml(ricef);
+    const htmlModule = escapeHtml(module);
+    const htmlSubmodule = escapeHtml(submodule);
+    const htmlDescription = escapeHtml(description);
+    const htmlDocument = escapeHtml(document);
+    const htmlResponsible = escapeHtml(responsible);
+    const htmlTransactionList = escapeHtml(transactionList);
+    const htmlBlockDate = escapeHtml(blockDate);
 
     return {
       subject: `[NTSA] Clean Core - Desarrollo Decomisado ${ricef}`,
@@ -83,7 +102,7 @@ Espero se encuentren bien.
 Para el proceso de CLEAN CORE se han seleccionado el siguiente RICEF para retirar del sistema: 
 Ricef: ${ricef}
 Descripción: ${description} 
-Responsable:  ${valueOr(form.responsible, 'RESPONSABLE-MENCIONADO')}
+Responsable:  ${responsible}
 Transacción: ${transactionList}
 
 
@@ -105,7 +124,36 @@ ${submoduleFilter}     Responsable de la definición DILIGENCIADO
      Definición = Decomisar
      Observaciones = Se encontro transaccion ${transactionList}
 
-     Nota: El campo Fecha Bloqueo Seguridad se encuentra diligenciado con fecha ${formatDate(form.blockDate)}
+     Nota: El campo Fecha Bloqueo Seguridad se encuentra diligenciado con fecha ${blockDate}
+Saludos,`,
+      bodyHtml: `Cordial Saludo equipo,<br>
+Espero se encuentren bien.<br>
+<br>
+Para el proceso de CLEAN CORE se han seleccionado el siguiente RICEF para retirar del sistema:<br>
+Ricef: ${htmlRicef}<br>
+Descripci&oacute;n: ${htmlDescription}<br>
+Responsable: ${htmlResponsible}<br>
+Transacci&oacute;n: ${htmlTransactionList}<br>
+<br>
+<br>
+Se informan con el prop&oacute;sito de que los tengan en cuenta para las actividades del comit&eacute; de cambios.<br>
+&nbsp;&nbsp;&nbsp;&nbsp; a. Diligenciar el formato del comit&eacute; de cambios:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Documento de cambio a informar: ${htmlDocument}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Se identifica transacciones: ${htmlTransactionList}<br>
+&nbsp;&nbsp;&nbsp;&nbsp; b. Presentar los retiros de los programas en los ambientes del ERP.<br>
+<br>
+Los criterios de selecci&oacute;n fueron:<br>
+<br>
+1.Se toma como base de selecci&oacute;n el archivo de Google sheet <a href="${sheetUrl}">${sheetLinkText}</a><br>
+<br>
+2. Se realiza filtros sobre el documento de la siguiente manera:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp; M&oacute;dulo = ${htmlModule}<br>
+${submodule === 'N/A' ? '' : `&nbsp;&nbsp;&nbsp;&nbsp; Submodulo = ${htmlSubmodule}<br>`}&nbsp;&nbsp;&nbsp;&nbsp; Responsable de la definici&oacute;n DILIGENCIADO<br>
+&nbsp;&nbsp;&nbsp;&nbsp; Definici&oacute;n = Decomisar<br>
+&nbsp;&nbsp;&nbsp;&nbsp; Observaciones = Se encontro transaccion ${htmlTransactionList}<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp; Nota: El campo Fecha Bloqueo Seguridad se encuentra diligenciado con fecha ${htmlBlockDate}<br>
 Saludos,`,
     };
   },

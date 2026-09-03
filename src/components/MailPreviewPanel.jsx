@@ -1,3 +1,15 @@
+import { useEffect, useRef } from 'react';
+
+const escapeHtml = (value) =>
+  String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+
+const plainTextToHtml = (text) => escapeHtml(text).replaceAll('\n', '<br>');
+
 function MailPreviewPanel({
   copied,
   effectiveMail,
@@ -8,6 +20,15 @@ function MailPreviewPanel({
   ready,
   hasOverride,
 }) {
+  const bodyEditorRef = useRef(null);
+  const bodyHtml = effectiveMail.bodyHtml ?? plainTextToHtml(effectiveMail.body);
+
+  useEffect(() => {
+    if (bodyEditorRef.current && bodyEditorRef.current.innerHTML !== bodyHtml) {
+      bodyEditorRef.current.innerHTML = bodyHtml;
+    }
+  }, [bodyHtml]);
+
   return (
     <aside className="preview-panel">
       <div className="preview-heading">
@@ -31,7 +52,7 @@ function MailPreviewPanel({
         <div className="preview-section">
           <div className="preview-label">
             <span>ASUNTO · EDITABLE</span>
-            <button onClick={() => onCopy('subject')}>{copied === 'subject' ? 'Copiado' : 'Copiar'}</button>
+            <button disabled={!ready} onClick={() => onCopy('subject')}>{copied === 'subject' ? 'Copiado' : 'Copiar'}</button>
           </div>
           <input
             className="subject-editor"
@@ -44,14 +65,16 @@ function MailPreviewPanel({
         <div className="preview-section body-section">
           <div className="preview-label">
             <span>CUERPO · EDITABLE</span>
-            <button onClick={() => onCopy('body')}>{copied === 'body' ? 'Copiado' : 'Copiar'}</button>
+            <button disabled={!ready} onClick={() => onCopy('body')}>{copied === 'body' ? 'Copiado' : 'Copiar'}</button>
           </div>
-          <textarea
+          <div
+            ref={bodyEditorRef}
             className="body-editor"
-            required
-            value={effectiveMail.body}
-            onChange={(event) => onEditMail('body', event.target.value)}
-            placeholder="Escribe el cuerpo del correo"
+            contentEditable
+            onInput={(event) => onEditMail('body', event.currentTarget.innerText)}
+            role="textbox"
+            aria-label="Cuerpo del correo"
+            suppressContentEditableWarning
           />
         </div>
       </div>

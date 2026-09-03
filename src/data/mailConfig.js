@@ -14,7 +14,7 @@ export const initialState = {
   description: '',
   integrationName: '',
   platform: 'PO',
-  channelStatus: 'Los canales se encontraban apagados.',
+  channelStatus: '',
   objects: '',
   sapUser: '',
   changeDocument: '',
